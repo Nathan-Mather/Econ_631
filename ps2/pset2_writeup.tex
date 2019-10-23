@@ -58,13 +58,11 @@ $$
 Note that if we rewrite the above expression as $$s_{j}(\bm p, \bm x, \bm \delta, \sigma) = 
 \int \tilde{s}_j (\bm p, \bm x, \bm \delta, \sigma)  dF(v_{i}) $$ we can get a fairly-nice expression for the own-price derivative with respect to the price:
 
-$$\frac{\partial s_j}{p_j} = \int (-\alpha)\frac{\partial \tilde{s}_j}{\partial \delta_j}dF(v) = \int (-\alpha)\tilde{s}_j(1-\tilde{s}_j)dF(v)$$
+$$\frac{\partial s_j}{p_j} = \int (-\alpha)\frac{\partial \tilde{s}_j}{\partial \delta_j}dF(v) = -\alpha \int \tilde{s}_j(1-\tilde{s}_j)dF(v)$$
 
 where the last equality is due to properties of the logit error. Thus our final price condition is 
 
-\begin{equation}\label{price}
-p_j = mc_j +\alpha (\int \tilde{s}_j dF(v))(\int \tilde{s}_j(1-\tilde{s}_j)dF(v))^{-1}
-\end{equation}
+$$p_j = mc_j - \int \tilde{s}_j dF(v)[ -\alpha \int \tilde{s}_j(1-\tilde{s}_j)dF(v)]^{-1}$$
 
 \section{Q1}
 We are given that $\alpha = 1, \beta = 1, \sigma = 1, x_1 = 1, x_2 = 2, x_3 = 3,$ and $mc_j = x_j$. 
@@ -100,16 +98,16 @@ $$p_1 = mc_1 - (s_1 + (p_2 - mc_2)\frac{\partial s_2}{\partial p_1})(\frac{\part
 Note that using our previous notation,
 $$\frac{\partial s_2}{\partial p_1} = - \alpha \int \tilde{s}_1\tilde{s}_2dF(v)$$
 
-The FOC for $p_2$ is symmetric to that of $p_1$, ant thus the optimal $p_1$ and $p_2$ are given by
+The FOC for $p_2$ is symmetric to that of $p_1$, and thus the optimal $p_1$ and $p_2$ are given by
 
-$$p_1 = mc_1 -[\int \tilde{s}_1 dF(v)+ \alpha (p_2 - mc_2)\int \tilde{s}_1\tilde{s}_2dF(v)](\int \tilde{s}_1(1-\tilde{s}_1)dF(v))^{-1}$$
+$$p_1 = mc_1 - [\int \tilde{s}_1 dF(v) - \alpha (p_2 - mc_2)\int \tilde{s}_1\tilde{s}_2dF(v)][-\alpha \int \tilde{s}_1(1-\tilde{s}_1)dF(v)]^{-1}$$
 
 
-$$p_2 = mc_2 + [\alpha\int \tilde{s}_2 dF(v) - \alpha (p_1 - mc_1)\int \tilde{s}_2\tilde{s}_1dF(v)](\int \tilde{s}_2(1-\tilde{s}_2)dF(v))^{-1}$$
+$$p_2 = mc_2 - [\int \tilde{s}_2 dF(v) - \alpha (p_1 - mc_1)\int \tilde{s}_2\tilde{s}_1dF(v)][-\alpha \int \tilde{s}_2(1-\tilde{s}_2)dF(v)]^{-1}$$
 
 As firm 3 has not merged it's optimal price condition is the same:
 
-$$ p_3 = mc_3 +\alpha (\int \tilde{s}_3 dF(v))(\int \tilde{s}_3(1-\tilde{s}_3)dF(v))^{-1}$$
+$$p_3 = mc_3 - \int \tilde{s}_3 dF(v)[ -\alpha \int \tilde{s}_3(1-\tilde{s}_3)dF(v)]^{-1}$$
 
 
 \end{document}
