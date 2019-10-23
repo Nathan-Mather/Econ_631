@@ -1,0 +1,115 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry} 
+\usepackage[fleqn]{mathtools}
+\usepackage{amsmath,amsthm,amssymb}
+\DeclareMathOperator*{\argmax}{argmax} % thin space, limits underneath in displays
+\DeclareMathOperator*{\argmin}{argmin} % thin space, limits underneath in displays
+\usepackage{graphicx}
+\usepackage[toc,page]{appendix}
+\usepackage[square,sort,comma,numbers]{natbib}
+\bibliographystyle{acm} %acm, abbrv, ieeetr, plain, unsrt plainnat
+\usepackage{listings}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{bm}
+\usepackage{bbm}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\V}{\mathrm{V}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\R}{\mathbb{R}} 
+\newcommand{\1}{\mathbbm{1}}
+
+
+\title{Economics 631 IO - Fall 2019\\Problem Set 2}
+\author{Nathan Mather and Tyler Radler}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{BLP - Random Coefficient}
+
+\subsection*{Preliminaries}
+Each firm chooses price to solve the problem
+
+$$\text{max}_{p_j} (p_j - mc_j)Ms_j(\bm p, \bm x, \sigma)$$
+
+The FOC is
+
+$$0 = (p_j - mc_j)M\frac{\partial s_j}{\partial p_j} + M s_j$$
+
+and so the price will be determined by the following condition:
+
+$$p_j = mc_j-s_j(\frac{\partial s_j}{\partial p_j})^{-1}$$.
+ The market share for product $j$ is given by 
+
+$$ s_{j}(\bm p, \bm x, \theta) = \int \frac{\exp (\beta_i x_{j} - \alpha p_{j})} {1 + \sum_{j'} \exp(\beta_i x_{j'} - \alpha p_{j'})} dF(\beta_{i})$$
+
+Given our functional form assumptions we can rewrite $\beta_{i} = \beta + \sigma v_{i}$ where $\beta$ is the mean of the distribution and $\sigma$ is the standard deviation, $v_i \sim \mathcal{N}(0,1)$. Additionally we can define the mean utility of purchasing product $j$ as $\delta_j = \beta x_{j} - \alpha p_j$ and rewrite the market share expression in terms of $\delta_j$ and $\sigma$.
+
+$$ s_{j}(\bm p, \bm x, \bm \delta, \sigma) = 
+\int \frac{\exp (\delta_j  + \sigma x_j v_{i})}
+{1 + \sum_{j'} \exp(\delta_{j'} + \sigma x_j' v_{i})}
+dF(v)
+$$
+	
+Note that if we rewrite the above expression as $$s_{j}(\bm p, \bm x, \bm \delta, \sigma) = 
+\int \tilde{s}_j (\bm p, \bm x, \bm \delta, \sigma)  dF(v_{i}) $$ we can get a fairly-nice expression for the own-price derivative with respect to the price:
+
+$$\frac{\partial s_j}{p_j} = \int (-\alpha)\frac{\partial \tilde{s}_j}{\partial \delta_j}dF(v) = \int (-\alpha)\tilde{s}_j(1-\tilde{s}_j)dF(v)$$
+
+where the last equality is due to properties of the logit error. Thus our final price condition is 
+
+\begin{equation}\label{price}
+p_j = mc_j +\alpha (\int \tilde{s}_j dF(v))(\int \tilde{s}_j(1-\tilde{s}_j)dF(v))^{-1}
+\end{equation}
+
+\section{Q1}
+We are given that $\alpha = 1, \beta = 1, \sigma = 1, x_1 = 1, x_2 = 2, x_3 = 3,$ and $mc_j = x_j$. 
+
+The price vector is: 
+
+\color{red}
+write write write
+\color{black}
+
+\section{Q2}
+Now $\alpha = .5, \beta = .5, \sigma = .5, x_1 = 1, x_2 = 2, x_3 = 3,$ and $mc_j = x_j$. 
+The price vector is: 
+
+\color{red}
+write write write. It is different because blah.
+\color{black}
+
+
+\section{Q3}
+After the merger the profit maximization problem for the new firm is  
+
+$$\text{max}_{p_1, p_2} (p_1 - mc_1)s_1(\bm p, \bm x, \sigma) + (p_2 - mc_2)s_2(\bm p, \bm x, \sigma)$$
+
+The FOC for $p_1$ is 
+
+$$0 = s_1 + (p_1 - mc_1)\frac{\partial s_1}{\partial p_1}   + (p_2 - mc_2)\frac{\partial s_2}{\partial p_1}$$
+
+and so the price will be determined by the following condition:
+
+$$p_1 = mc_1 - (s_1 + (p_2 - mc_2)\frac{\partial s_2}{\partial p_1})(\frac{\partial s_1}{\partial p_1})^{-1}$$
+
+Note that using our previous notation,
+$$\frac{\partial s_2}{\partial p_1} = - \alpha \int \tilde{s}_1\tilde{s}_2dF(v)$$
+
+The FOC for $p_2$ is symmetric to that of $p_1$, ant thus the optimal $p_1$ and $p_2$ are given by
+
+$$p_1 = mc_1 -[\int \tilde{s}_1 dF(v)+ \alpha (p_2 - mc_2)\int \tilde{s}_1\tilde{s}_2dF(v)](\int \tilde{s}_1(1-\tilde{s}_1)dF(v))^{-1}$$
+
+
+$$p_2 = mc_2 + [\alpha\int \tilde{s}_2 dF(v) - \alpha (p_1 - mc_1)\int \tilde{s}_2\tilde{s}_1dF(v)](\int \tilde{s}_2(1-\tilde{s}_2)dF(v))^{-1}$$
+
+As firm 3 has not merged it's optimal price condition is the same:
+
+$$ p_3 = mc_3 +\alpha (\int \tilde{s}_3 dF(v))(\int \tilde{s}_3(1-\tilde{s}_3)dF(v))^{-1}$$
+
+
+\end{document}
