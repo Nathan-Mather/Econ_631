@@ -118,7 +118,7 @@ p.init <- matrix(c(2, 3, 4))
 tol <- 10^-10
 
 
-p_solver <- function(beta.in, alpha.in, sigma.in, xi.in, p.guess){
+p_solver <- function(beta.in, alpha.in, sigma.in, xi.in, mc.in, p.guess){
   #==========================#
   # ==== Inside the loop ====
   #==========================#
@@ -144,7 +144,7 @@ p_solver <- function(beta.in, alpha.in, sigma.in, xi.in, p.guess){
       dSharedOwnP <- as.matrix(dSharedOwnP_f(shares, alpha))
       
       # using the shares and derivative, calculate the equilibrium price
-      p.guess <- xi.in - shares*(dSharedOwnP)^-1
+      p.guess <- mc.in - shares*(dSharedOwnP)^-1
       
       i <- i + 1
     }
@@ -154,14 +154,14 @@ p_solver <- function(beta.in, alpha.in, sigma.in, xi.in, p.guess){
 }
 
 # get answer for question 1 
-p_q1 <- p_solver(1, 1, 1, xi, p.init)
+p_q1 <- p_solver(1, 1, 1, xi, mc.in = xi,  p.init)
 
 
 #=====================#
 # ==== question 2 ====
 #=====================#
 
-p_q2 <- p_solver(.5, .5, .5, xi, p.init)
+p_q2 <- p_solver(.5, .5, .5, xi, mc.in = xi, p.init)
 
 
 
@@ -170,7 +170,7 @@ p_q2 <- p_solver(.5, .5, .5, xi, p.init)
 #=====================#
 
 
-p_postmerge_solver <- function(beta.in, alpha.in, sigma.in, xi.in, p.guess){
+p_postmerge_solver <- function(beta.in, alpha.in, sigma.in, xi.in, mc.in, p.guess){
   #==========================#
   # ==== Inside the loop ====
   #==========================#
@@ -189,7 +189,7 @@ p_postmerge_solver <- function(beta.in, alpha.in, sigma.in, xi.in, p.guess){
     mu <- xi.in%*%v*sigma.in
     
     # You care about the markup of the other product you own, so create a variable for 2's markup for 1, 1's for 2. 
-    markup <- p.guess - xi.in
+    markup <- p.guess - mc.in
     
     # Definitely a better way to do this...
     othergood.markup <- rbind(markup[2,1], markup[1, 1], 0)
@@ -215,7 +215,7 @@ p_postmerge_solver <- function(beta.in, alpha.in, sigma.in, xi.in, p.guess){
 }
 
 
-p_q3 <- p_postmerge_solver(.5, .5, .5, xi, matrix(c(2, 3, 4)))
+p_q3 <- p_postmerge_solver(.5, .5, .5, xi,mc.in = xi, matrix(c(2, 3, 4)))
 
 
 #=====================#
@@ -337,6 +337,14 @@ p_q3 <- p_postmerge_solver(.5, .5, .5, xi, matrix(c(2, 3, 4)))
                                       "change in Producer surplus per person",
                                       "change in total surplus per person"),
                         value = c(-mean_cv, change_ps,total_surplus_change))
+  
+  
+
+#=====================#
+# ==== Question 5 ====
+#=====================#
+
+
   
   
   
