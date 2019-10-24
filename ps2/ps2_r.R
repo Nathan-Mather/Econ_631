@@ -23,7 +23,7 @@ sigma.in = 1
 x1    = 1 
 x2    = 2
 x3    = 3
-n.sim = 100
+n.sim = 10
 
 # create data.tabe of xs 
 xi.in <- as.matrix(c(x1,x2,x3))
@@ -57,10 +57,10 @@ sigma = 1
 x1    = 1 
 x2    = 2
 x3    = 3
-n.sim = 100
+n.sim = 10
 
 # Function to compute shares for a given mean and random utility 
-share_f <- function(delta.in, mu.in){
+share_f <- function(delta.in, mu.in, opt_tidle = FALSE){
   
   # get the numerator by exp(delta + xi*vi*sigma)
   numer <- exp(mu.in) * matrix(rep(exp(delta.in), n.sim), ncol = n.sim)
@@ -71,10 +71,16 @@ share_f <- function(delta.in, mu.in){
   # then replicated this three times so we can divide (probs better way to do this )
   denom <- rbind(denom_i, denom_i, denom_i)
   
-  # the shares are the mean of numerator/denominator accross simulations 
-  shares <- rowMeans(numer / denom)
+  if(opt_tidle){
+    
+    return(numer / denom)
+    
+  }else{
+    # the shares are the mean of numerator/denominator accross simulations 
+    shares <- rowMeans(numer / denom)
   
-  return(shares)
+    return(shares)
+  }
 }
 
 # Function to compute the derivative of your own shares wrt own-good mean utility 
@@ -82,7 +88,7 @@ share_f <- function(delta.in, mu.in){
 dSharedOwnP_f <- function(shares.in, alpha.in){
 
   # dS.i/dP.i is -alpha*share*(1-share)
-  dSharedOwnP <- -alpha.in*shares.in*(1-shares.in)
+  dSharedOwnP <- rowMeans(-alpha.in*shares.in*(1-shares.in))
   
   return(dSharedOwnP)
 }
@@ -92,10 +98,10 @@ dSharedOwnP_f <- function(shares.in, alpha.in){
 dSharedOtherP_f <- function(shares.in, alpha.in){
   
   # Just using shares output from other function  
-  share.i <- matrix(shares.in)
+  # share.i <- matrix(shares.in)
   
   # dS.i/dDelta.j is integral of -s.i*s.j
-  sisj.matrix <- -share.i%*%t(share.i)
+  sisj.matrix <- -shares.in%*%t(shares.in)/ncol(shares.in)
   
   # dS.i/dP.j is -alpha*dS.i/dDelta.j
   #note I don't understand why we are only grabbing 1,2
@@ -141,7 +147,9 @@ p_solver <- function(beta.in, alpha.in, sigma.in, xi.in, mc.in, p.guess){
 
       # Calculate shares and derivative      
       shares <- as.matrix(share_f(delta, mu))
-      dSharedOwnP <- as.matrix(dSharedOwnP_f(shares, alpha))
+      shares_tilde <- share_f(delta, mu, opt_tidle = TRUE)
+      
+      dSharedOwnP <- as.matrix(dSharedOwnP_f(shares_tilde, alpha))
       
       # using the shares and derivative, calculate the equilibrium price
       p.guess <- mc.in - shares*(dSharedOwnP)^-1
@@ -196,11 +204,12 @@ p_postmerge_solver <- function(beta.in, alpha.in, sigma.in, xi.in, mc.in, p.gues
 
     # Calculate shares, own price elasticities
     shares <- as.matrix(share_f(delta, mu))
-    dSharesdOwnP <- as.matrix(dSharedOwnP_f(shares, alpha))
+    shares_tilde <- share_f(delta, mu, opt_tidle = TRUE)
+    dSharesdOwnP <- as.matrix(dSharedOwnP_f(shares_tilde, alpha))
 
     # Calculate price elasticities wrt the other product we care about. 
     #note: would rather use an ownership matrix somehow but yolo
-    dSharesdOtherP <- as.matrix(c(dSharedOtherP_f(shares, alpha), dSharedOtherP_f(shares, alpha), 0))
+    dSharesdOtherP <- as.matrix(c(dSharedOtherP_f(shares_tilde, alpha), dSharedOtherP_f(shares_tilde, alpha), 0))
     
     # using the shares and derivative, calculate the equilibrium price
     p.guess <- xi.in - (shares + othergood.markup*dSharesdOtherP)*(dSharesdOwnP)^-1
