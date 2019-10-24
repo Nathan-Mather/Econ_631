@@ -203,7 +203,7 @@ p_postmerge_solver <- function(beta.in, alpha.in, sigma.in, xi.in, p.guess){
     dSharesdOtherP <- as.matrix(c(dSharedOtherP_f(shares, alpha), dSharedOtherP_f(shares, alpha), 0))
     
     # using the shares and derivative, calculate the equilibrium price
-    p.guess <- xi.in - (shares - othergood.markup*dSharesdOtherP)*(dSharesdOwnP)^-1
+    p.guess <- xi.in - (shares + othergood.markup*dSharesdOtherP)*(dSharesdOwnP)^-1
     
     i <- i + 1
   }
@@ -308,7 +308,7 @@ p_q3 <- p_postmerge_solver(.5, .5, .5, xi, matrix(c(2, 3, 4)))
   }
   
   
-  
+  # get profts before 
   profits_before <- profit_f(pv        = p_q2,
                               mc_v     = xi,
                               v.in     = v,
@@ -316,7 +316,7 @@ p_q3 <- p_postmerge_solver(.5, .5, .5, xi, matrix(c(2, 3, 4)))
                               alpha.in = .5,
                               beta.in  = .5,
                               sigma.in = .5)
-  
+  # get profits after 
   profits_after <- profit_f(pv         = p_q3,
                               mc_v     = xi,
                               v.in     = v,
@@ -326,6 +326,17 @@ p_q3 <- p_postmerge_solver(.5, .5, .5, xi, matrix(c(2, 3, 4)))
                               sigma.in = .5)
   
   
+  # get the total difference in profits i.e. producer surplus 
+  change_ps <- sum(profits_after) - sum(profits_before)
+  
+  # get change in total surplus 
+   total_surplus_change <- change_ps - mean_cv
+  
+  # table all the info
+  q4_table <- data.table(variable = c("change in cosumer surplus per person",
+                                      "change in Producer surplus per person",
+                                      "change in total surplus per person"),
+                        value = c(-mean_cv, change_ps,total_surplus_change))
   
   
   
