@@ -215,7 +215,7 @@ p_postmerge_solver <- function(beta.in, alpha.in, sigma.in, xi.in, p.guess){
 }
 
 
-p_q3 <- p_postmerge_solver(1, 1, 1, xi, matrix(c(2, 3, 4)))
+p_q3 <- p_postmerge_solver(.5, .5, .5, xi, matrix(c(2, 3, 4)))
 
 
 #=====================#
