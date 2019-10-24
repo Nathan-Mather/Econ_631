@@ -352,12 +352,47 @@ p_q3 <- p_postmerge_solver(.5, .5, .5, xi,mc.in = xi, matrix(c(2, 3, 4)))
 #=====================#
 # ==== Question 5 ====
 #=====================#
+mc_new <- c(.5,1,3)
+  
+p_post_q5 <- p_postmerge_solver(.5, .5, .5, xi, mc.in = mc_new, p.init)
+
+# get cv 
+cv_i <- cv_i_f(v.in     = v,
+               pv_pre   = p_q2,
+               pv_post  = p_post_q5,
+               xi.in    = xi,
+               beta.in  = .5,
+               alpha.in = .5,
+               sigma.in = .5)
+
+# now get mean cv 
+mean_cv <- mean(cv_i)
+  
+# get profits after 
+profits_after_q5 <- profit_f(pv      = p_post_q5,
+                          mc_v       = mc_new,
+                          v.in       = v,
+                          xi.in      = xi,
+                          alpha.in   = .5,
+                          beta.in    = .5,
+                          sigma.in   = .5)  
+  
+  
+# get the total difference in profits i.e. producer surplus 
+change_ps <- sum(profits_after_q5) - sum(profits_before)
+
+# get change in total surplus 
+total_surplus_change <- change_ps - mean_cv
+
+# table all the info
+q5_table <- data.table(variable = c("change in cosumer surplus per person",
+                                    "change in Producer surplus per person",
+                                    "change in total surplus per person"),
+                       value = c(-mean_cv, change_ps,total_surplus_change))
+
+#=========================#
+# ==== save everthing ====
+#=========================#
 
 
-  
-  
-  
-  
-  
-  
 
