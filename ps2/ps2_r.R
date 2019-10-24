@@ -138,12 +138,6 @@ p_solver <- function(beta.in, alpha.in, sigma.in, xi.in, p.guess){
       
       # calculate x times sigma times v 
       mu <- xi.in%*%v*sigma.in
-      
-      #note pretty sure we can delete this but double check with tyler 
-      # # using the delta calculate shares
-      # # below are hardcoded parameters for debug
-      # delta.in = delta
-      # mu.in = mu
 
       # Calculate shares and derivative      
       shares <- as.matrix(share_f(delta, mu))
@@ -194,12 +188,6 @@ p_postmerge_solver <- function(beta.in, alpha.in, sigma.in, xi.in, p.guess){
     # calculate x times sigma times v 
     mu <- xi.in%*%v*sigma.in
     
-    #note I think we can delete this 
-    # # using the delta calculate shares 
-    # # below are hardcoded parameters for debug
-    # delta.in = delta
-    # mu.in = mu
-    
     # You care about the markup of the other product you own, so create a variable for 2's markup for 1, 1's for 2. 
     markup <- p.guess - xi.in
     
@@ -228,4 +216,120 @@ p_postmerge_solver <- function(beta.in, alpha.in, sigma.in, xi.in, p.guess){
 
 
 p_q3 <- p_postmerge_solver(1, 1, 1, xi, matrix(c(2, 3, 4)))
+
+
+#=====================#
+# ==== question 4 ====
+#=====================#
+
+
+#=====================================#
+# ==== change in consumer surplus ====
+#=====================================#
+  
+  
+  # define variables for debug 
+  v.in = v
+  pv = p_q2
+  
+  
+  # function for getting sum of value funcitons 
+  vi_f <- function(v.in, pv, xi.in, beta.in, alpha.in, sigma.in){
+    
+    # make beta_i 
+   beta_i <-  beta.in + sigma.in*v.in
+   
+   # get beta_i times xs 
+   #note this is old. It does not doe the exponent. Can delet when we are sure it is wrong 
+   # Vi <- colSums( xi.in %*% beta_i  ) - colSums(alpha*pv )
+   Vi <- colSums( exp(xi.in %*% beta_i - matrix(rep(alpha*pv, ncol(beta_i)), ncol = ncol(beta_i))) )
+    
+   return(Vi)
+  }
+  
+  
+  # #note temp define these for deubg 
+  # pv_pre = p_q2
+  # pv_post = p_q3
+  
+  # NOw write funciton to get cv_i
+  cv_i_f <- function(v.in, pv_pre, pv_post, xi.in, beta.in, alpha.in, sigma.in ){
+    
+    # get vi for pre 
+    vi_pre <- vi_f(v.in, pv = pv_pre, xi.in, beta.in, alpha.in, sigma.in)
+    
+    # et vi for post 
+    vi_post <- vi_f(v.in, pv = pv_post, xi.in, beta.in, alpha.in, sigma.in)
+    
+    # get cv_i 
+    cv_i <- (log(vi_post) - log(vi_pre))/-alpha.in
+    
+    return(cv_i)
+    
+  }
+  
+  # run it with correct values 
+  cv_i <- cv_i_f(v.in     = v,
+                 pv_pre   = p_q2,
+                 pv_post  = p_q3,
+                 xi.in    = xi,
+                 beta.in  = .5,
+                 alpha.in = .5,
+                 sigma.in = .5)
+  
+  # now get mean cv 
+  mean_cv <- mean(cv_i)
+  
+#=====================================#
+# ==== Change in producer surplus ====
+#=====================================#
+  
+  # # for debug 
+  # pv       = p_q2
+  # mc_v     = xi
+  # v.in     = v
+  # xi.in    = xi
+  # alpha.in = .5
+  # beta.in  = .5
+  # sigma.in = .5
+  profit_f <- function(pv,mc_v, v.in, alpha.in, beta.in, xi.in, sigma.in){
+    
+    # using the guess, calualte deltas 
+    delta  <- xi.in*beta.in - alpha.in*pv
+    
+    # calculate x times sigma times v 
+    mu <- xi.in%*%v.in*sigma.in
+    
+    shares <- share_f(delta, mu)
+    # get profits before and afte
+    profits <-( pv - mc_v)*shares
+    
+    return(profits)
+  }
+  
+  
+  
+  profits_before <- profit_f(pv        = p_q2,
+                              mc_v     = xi,
+                              v.in     = v,
+                              xi.in    = xi,
+                              alpha.in = .5,
+                              beta.in  = .5,
+                              sigma.in = .5)
+  
+  profits_after <- profit_f(pv         = p_q3,
+                              mc_v     = xi,
+                              v.in     = v,
+                              xi.in    = xi,
+                              alpha.in = .5,
+                              beta.in  = .5,
+                              sigma.in = .5)
+  
+  
+  
+  
+  
+  
+  
+  
 
