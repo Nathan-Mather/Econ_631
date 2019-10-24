@@ -57,7 +57,7 @@ sigma = 1
 x1    = 1 
 x2    = 2
 x3    = 3
-n.sim = 10
+n.sim = 10000
 
 # Function to compute shares for a given mean and random utility 
 share_f <- function(delta.in, mu.in, opt_tidle = FALSE){
