@@ -9,43 +9,6 @@ require(Matrix)
 rm(list = ls(pos = ".GlobalEnv"), pos = ".GlobalEnv")
 options(scipen = 999)
 cat("\f")
-
-#================================#
-# ==== define vars for debug ====
-#================================#
-# this is to let me run the internal of the function line by line
-# commenting out for now, can delete later but I like to have something like this to 
-# look at how the functions work 
-# set parameters 
-alpha.in = 1 
-beta.in  = 1
-sigma.in = 1 
-x1    = 1 
-x2    = 2
-x3    = 3
-n.sim = 10
-
-# create data.tabe of xs 
-xi.in <- as.matrix(c(x1,x2,x3))
-
-# make simulation matrix 
-v = matrix(rnorm(1 * n.sim), nrow = 1, ncol = n.sim)
-
-
-# Now we will guess the price to start and calcualte everything 
-# fill in an initial price guess to work through functions 
-# price in iteration k 
-p.init <- matrix(c(2, 3, 4))
-p.guess <- p.init
-
-# using the guess, calualte deltas 
-delta.in  <- xi.in*beta.in - alpha.in*p.init
-
-# calculate x times sigma times v 
-mu.in <- xi.in%*%v*sigma.in
-
-
-
 #=====================#
 # ==== Question 1 ====
 #=====================#
@@ -149,7 +112,7 @@ p_solver <- function(beta.in, alpha.in, sigma.in, xi.in, mc.in, p.guess){
       shares <- as.matrix(share_f(delta, mu))
       shares_tilde <- share_f(delta, mu, opt_tidle = TRUE)
       
-      dSharedOwnP <- as.matrix(dSharedOwnP_f(shares_tilde, alpha))
+      dSharedOwnP <- as.matrix(dSharedOwnP_f(shares_tilde, alpha.in))
       
       # using the shares and derivative, calculate the equilibrium price
       p.guess <- mc.in - shares*(dSharedOwnP)^-1
