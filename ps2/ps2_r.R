@@ -4,20 +4,25 @@
 
 require(data.table)
 require(Matrix)
+library(xtable)
 
 # clear objects
 rm(list = ls(pos = ".GlobalEnv"), pos = ".GlobalEnv")
 options(scipen = 999)
 cat("\f")
+
+#set #note output location 
+f_out <- "c:/Users/Nmath_000/Documents/Code/Econ_631/ps2/"
+
+#set #note option to save output 
+opt_save <- TRUE
+
 #=====================#
 # ==== Question 1 ====
 #=====================#
 
-# set parameters 
-alpha = 1 
-beta  = 1
-sigma = 1 
-x1    = 1 
+# set parameters
+x1    = 1
 x2    = 2
 x3    = 3
 n.sim = 10000
@@ -353,9 +358,65 @@ q5_table <- data.table(variable = c("change in cosumer surplus per person",
                                     "change in total surplus per person"),
                        value = c(-mean_cv, change_ps,total_surplus_change))
 
-#=========================#
-# ==== save everthing ====
-#=========================#
+#===============================#
+# ==== save output to latex ====
+#===============================#
+
+# make these tables pretty 
+p_q1_out <- data.table(variable = c("p1", "p2", "p3"), value = as.numeric(p_q1))
+p_q2_out <- data.table(variable = c("p1", "p2", "p3"), value = as.numeric(p_q2))
+p_q3_out <- data.table(variable = c("p1", "p2", "p3"), value = as.numeric(p_q3))
+p_post_q5_out <- data.table(variable = c("p1", "p2", "p3"), value = as.numeric(p_post_q5))
+
+ # capitolize first letters 
+q4_table[, variable := sapply(variable, function(x) paste0(sapply(strsplit(x, " "), Hmisc::capitalize), collapse = " "))]
+q5_table[, variable := sapply(variable, function(x) paste0(sapply(strsplit(x, " "), Hmisc::capitalize), collapse = " "))]
+
+if(opt_save){
+  
+  
+  print(xtable(p_q1_out, type = "latex"), 
+        file = paste0(f_out, "p_q1.tex"),
+        include.rownames = FALSE,
+        floating = FALSE)
+  
+  print(xtable(p_q2_out, type = "latex"), 
+        file = paste0(f_out, "p_q2.tex"),
+        include.rownames = FALSE,
+        floating = FALSE)
+  
+  print(xtable(p_q3_out, type = "latex"), 
+        file = paste0(f_out, "p_q3.tex"),
+        include.rownames = FALSE,
+        floating = FALSE)
+  
+  print(xtable(q4_table, type = "latex"), 
+        file = paste0(f_out, "q4_table.tex"),
+        include.rownames = FALSE,
+        floating = FALSE)
+  
+  print(xtable(p_post_q5_out, type = "latex"), 
+        file = paste0(f_out, "p_post_q5.tex"),
+        include.rownames = FALSE,
+        floating = FALSE)
+  
+  
+  print(xtable(q5_table, type = "latex"), 
+        file = paste0(f_out, "q5_table.tex"),
+        include.rownames = FALSE,
+        floating = FALSE)
+  
+  
+}
+
+
+#======================================#
+# ==== run r markdown for tex file ====
+#======================================#
+
+rmarkdown::render(input =  "C:/Users/Nmath_000/Documents/Code/Econ_631/ps2/ps2_r_markdown.Rmd",
+                  output_format = "pdf_document",
+                  output_file = paste0(f_out, "assignment_2_r_code_pdf.pdf"))   
 
 
 

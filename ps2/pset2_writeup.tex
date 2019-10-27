@@ -14,6 +14,7 @@
 \usepackage{hyperref}
 \usepackage{bm}
 \usepackage{bbm}
+\usepackage{pdfpages}
 
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\V}{\mathrm{V}}
@@ -69,6 +70,14 @@ We are given that $\alpha = 1, \beta = 1, \sigma = 1, x_1 = 1, x_2 = 2, x_3 = 3,
 
 The price vector is: 
 
+\begin{center}
+	\centering
+	\textbf{Q1 Prices }\par\medskip
+	\scalebox{1}{
+		\input{p_q1.tex}
+	}
+\end{center}
+
 \color{red}
 write write write
 \color{black}
@@ -76,6 +85,14 @@ write write write
 \section{Q2}
 Now $\alpha = .5, \beta = .5, \sigma = .5, x_1 = 1, x_2 = 2, x_3 = 3,$ and $mc_j = x_j$. 
 The price vector is: 
+
+\begin{center}
+	\centering
+	\textbf{Q2 Prices}\par\medskip
+	\scalebox{1}{
+		\input{p_q2.tex}
+	}
+\end{center}
 
 \color{red}
 write write write. It is different because blah.
@@ -109,6 +126,15 @@ As firm 3 has not merged it's optimal price condition is the same:
 
 $$p_3 = mc_3 - \int \tilde{s}_3 dF(v)[ -\alpha \int \tilde{s}_3(1-\tilde{s}_3)dF(v)]^{-1}$$
 
+The price vector from the simulation is: 
+
+\begin{center}
+	\centering
+	\textbf{Q3 Prices}\par\medskip
+	\scalebox{1}{
+		\input{p_q3.tex}
+	}
+\end{center}
 
 \section{Q4}
 The change in consumer surplus is given by the compensating variation, which we can calculate as follows:
@@ -129,6 +155,15 @@ $$\Delta \text{Surplus} = \Delta \pi - CV = M[(\sum_j (p_j^{new} - mc_j^{new})s_
 
 The change in surplus when we normalize $M = 1$ is 
 
+
+\begin{center}
+	\centering
+	\textbf{Q4 Surplus Results}\par\medskip
+	\scalebox{1}{
+		\input{q4_table.tex}
+	}
+\end{center}
+
 \color{red}
 insert ish here
 \color{black}
@@ -136,9 +171,42 @@ insert ish here
 \section{Q5}
 If we allow the merging firm's marginal costs to decrease from $x_j$ to $\frac{x_j}{2}$ we get the following pricing equilibrium and change in consumer, producer and total surplus:
 
+
+\begin{center}
+	\centering
+	\textbf{Q5 Prices}\par\medskip
+	\scalebox{1}{
+		\input{p_post_q5.tex}
+	}
+\end{center}
+
+\begin{center}
+	\centering
+	\textbf{Q5 Surplus Results}\par\medskip
+	\scalebox{1}{
+		\input{q5_table.tex}
+	}
+\end{center}
+
+
 \color{red}
 insert ish here
 \color{black}
+
+
+%------------------------------------------------
+% APPENDIX
+%------------------------------------------------
+
+
+
+\section{Appendix}
+\subsection{R Code}
+
+\includepdf[page=-]{assignment_2_r_code_pdf.pdf}
+
+
+
 
 
 \end{document}
