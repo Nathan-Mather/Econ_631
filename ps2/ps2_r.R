@@ -168,11 +168,11 @@ p_postmerge_solver <- function(beta.in, alpha.in, sigma.in, xi.in, mc.in, p.gues
     # Calculate shares, own price elasticities
     shares <- as.matrix(share_f(delta, mu))
     shares_tilde <- share_f(delta, mu, opt_tidle = TRUE)
-    dSharesdOwnP <- as.matrix(dSharedOwnP_f(shares_tilde, alpha))
+    dSharesdOwnP <- as.matrix(dSharedOwnP_f(shares_tilde, alpha.in))
 
     # Calculate price elasticities wrt the other product we care about. 
     #note: would rather use an ownership matrix somehow but yolo
-    dSharesdOtherP <- as.matrix(c(dSharedOtherP_f(shares_tilde, alpha), dSharedOtherP_f(shares_tilde, alpha), 0))
+    dSharesdOtherP <- as.matrix(c(dSharedOtherP_f(shares_tilde, alpha.in), dSharedOtherP_f(shares_tilde, alpha.in), 0))
     
     # using the shares and derivative, calculate the equilibrium price
     p.guess <- xi.in - (shares + othergood.markup*dSharesdOtherP)*(dSharesdOwnP)^-1
@@ -214,7 +214,7 @@ p_q3 <- p_postmerge_solver(.5, .5, .5, xi,mc.in = xi, matrix(c(2, 3, 4)))
    # get beta_i times xs 
    #note this is old. It does not doe the exponent. Can delet when we are sure it is wrong 
    # Vi <- colSums( xi.in %*% beta_i  ) - colSums(alpha*pv )
-   Vi <- colSums( exp(xi.in %*% beta_i - matrix(rep(alpha*pv, ncol(beta_i)), ncol = ncol(beta_i))) )
+   Vi <- colSums( exp(xi.in %*% beta_i - matrix(rep(alpha.in*pv, ncol(beta_i)), ncol = ncol(beta_i))) )
     
    return(Vi)
   }
