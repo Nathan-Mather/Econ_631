@@ -139,7 +139,30 @@ p_q1 <- p_solver(1, 1, 1, xi, mc.in = xi,  p.init)
 
 p_q2 <- p_solver(.5, .5, .5, xi, mc.in = xi, p.init)
 
+# test what happens as we change only one variable at a time 
+p_test1 <- p_solver(beta.in = .5,
+                    alpha.in= 1,
+                    sigma.in = 1, 
+                    xi,
+                    mc.in = xi,
+                    p.init)
 
+p_test2 <- p_solver(beta.in = 1,
+                    alpha.in= .5,
+                    sigma.in = 1, 
+                    xi,
+                    mc.in = xi,
+                    p.init)
+
+p_test3 <- p_solver(beta.in = 1,
+                    alpha.in= 1,
+                    sigma.in = .5, 
+                    xi,
+                    mc.in = xi,
+                    p.init)
+
+# compare them all 
+comparison <- cbind(p_q1, p_q2, p_test1, p_test2, p_test3)
 
 #=====================#
 # ==== Question 3 ====
