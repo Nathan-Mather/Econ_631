@@ -14,15 +14,17 @@
   cat("\f")
   
   library(data.table)
+  library(xtable)
   
   # set option for who is running this 
   opt_nate <- TRUE
   
-  # load data based on who is running 
+  # load data and set directories 
   if(opt_nate){
     
     # laod data 
     gmdt <- fread("c:/Users/Nmath_000/Documents/MI_school/Third Year/Econ 631/ps3/GMdata.csv")
+    f_out <- "c:/Users/Nmath_000/Documents/Code/Econ_631/ps3/"
   
     # if running on tyler's computer 
     }else{
@@ -32,23 +34,7 @@
     
   }
 
-  
-#===========================#
-# ==== useful functions ====
-#===========================#
 
-  ea_table <- function (in_data = NULL, in_vars_table = NULL, opt_percent = 0, 
-                        opt_var_per_by_group = NULL){
-    temp_data <- data.table::copy(data.table::data.table(in_data))
-    temp_data <- temp_data[, list(count = .N), by = in_vars_table]
-    setkeyv(temp_data, in_vars_table)
-    if (opt_percent == 1) {
-      temp_data[, `:=`(percent, count/sum(count) * 100), 
-                by = opt_var_per_by_group]
-    }
-    out_data <- data.table::copy(temp_data)
-    return(out_data[])
-  }
 
 #========================#
 # ==== summary stats ====
@@ -93,19 +79,28 @@
     sum_stats_li[[6]] <- gmdt[, list("Full Min" = lapply(.SD, min)), .SDcols = vars]
     sum_stats_li[[7]] <- gmdt_b[, list("Balanced Min" = lapply(.SD, min)), .SDcols = vars]
     #max 
-    sum_stats_li[[6]] <- gmdt[, list("Full Min" = lapply(.SD, min)), .SDcols = vars]
-    sum_stats_li[[7]] <- gmdt_b[, list("Balanced Min" = lapply(.SD, min)), .SDcols = vars]
-    
+    sum_stats_li[[8]] <- gmdt[, list("Full Min" = lapply(.SD, max)), .SDcols = vars]
+    sum_stats_li[[9]] <- gmdt_b[, list("Balanced Min" = lapply(.SD, max)), .SDcols = vars]
+
     # get variance 
     sum_stats <- do.call(cbind, sum_stats_li)
+    #check it out! 
+    sum_stats
+    
+    
   
   
+  #============================#
+  # ==== save table to tex ====
+  #============================#
+
   
   
-  
-  
-  
-  
+    # save summary stats 
+    print(xtable(sum_stats, type = "latex"), 
+          file = paste0(f_out, "sum_stats.tex"),
+          include.rownames = FALSE,
+          floating = FALSE)
   
   
   
