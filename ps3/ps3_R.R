@@ -30,7 +30,8 @@
     }else{
       
       # load data from tylers locaiton 
-      gmdt <- fread("c:/")
+      gmdt <- fread("c:/- tyler path ")
+      f_out <- "tyler puts path here "
     
   }
 
@@ -72,15 +73,42 @@
     # means 
     sum_stats_li[[2]] <- gmdt[, list("Full Mean" = lapply(.SD, mean)), .SDcols = vars]
     sum_stats_li[[3]] <- gmdt_b[, list("Balanced Mean" = lapply(.SD, mean)), .SDcols = vars]
+    
+    # t.test for mean equlity 
+    # function to do it 
+    tstat_fun <- function(var_i){
+    res <- t.test(gmdt[, get(var_i)], gmdt_b[, get(var_i)])
+    
+    return(res$statistic)
+    }
+    
+    # apply over variales 
+    sum_stats_li[[4]] <- data.table( "Tstat" = unlist(lapply(vars, tstat_fun)))
+    
+    
     # varianvce 
-    sum_stats_li[[4]] <- gmdt[, list("Full Variance" = lapply(.SD, var)), .SDcols = vars]
-    sum_stats_li[[5]] <- gmdt_b[, list("Balanced Variance" = lapply(.SD, var)), .SDcols = vars]
+    sum_stats_li[[5]] <- gmdt[, list("Full Variance" = lapply(.SD, var)), .SDcols = vars]
+    sum_stats_li[[6]] <- gmdt_b[, list("Balanced Variance" = lapply(.SD, var)), .SDcols = vars]
+    
+    
+    # fstat for equalit of variance 
+    ftest_fun <- function(var_i){
+      res <- var.test(gmdt[, get(var_i)], gmdt_b[, get(var_i)])
+      
+      return(res$statistic)
+    }
+    
+    #apply over variables 
+    sum_stats_li[[7]] <- data.table( "Fstat" = unlist(lapply(vars, ftest_fun)))
+    
+    
+    
     #min
-    sum_stats_li[[6]] <- gmdt[, list("Full Min" = lapply(.SD, min)), .SDcols = vars]
-    sum_stats_li[[7]] <- gmdt_b[, list("Balanced Min" = lapply(.SD, min)), .SDcols = vars]
+    sum_stats_li[[8]] <- gmdt[, list("Full Min" = lapply(.SD, min)), .SDcols = vars]
+    sum_stats_li[[9]] <- gmdt_b[, list("Balanced Min" = lapply(.SD, min)), .SDcols = vars]
     #max 
-    sum_stats_li[[8]] <- gmdt[, list("Full Min" = lapply(.SD, max)), .SDcols = vars]
-    sum_stats_li[[9]] <- gmdt_b[, list("Balanced Min" = lapply(.SD, max)), .SDcols = vars]
+    sum_stats_li[[10]] <- gmdt[, list("Full Min" = lapply(.SD, max)), .SDcols = vars]
+    sum_stats_li[[11]] <- gmdt_b[, list("Balanced Min" = lapply(.SD, max)), .SDcols = vars]
 
     # get variance 
     sum_stats <- do.call(cbind, sum_stats_li)
