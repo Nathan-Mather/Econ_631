@@ -46,6 +46,12 @@ $RECYCLE.BIN/
 *.nav
 *.snm
 
+
+# pics 
+*.jpeg
+*.jpg
+*.webp
+
 # =========================
 # Operating System Files
 # =========================
