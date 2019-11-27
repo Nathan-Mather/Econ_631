@@ -107,8 +107,8 @@
     sum_stats_li[[8]] <- gmdt[, list("Full Min" = lapply(.SD, min)), .SDcols = vars]
     sum_stats_li[[9]] <- gmdt_b[, list("Balanced Min" = lapply(.SD, min)), .SDcols = vars]
     #max 
-    sum_stats_li[[10]] <- gmdt[, list("Full Min" = lapply(.SD, max)), .SDcols = vars]
-    sum_stats_li[[11]] <- gmdt_b[, list("Balanced Min" = lapply(.SD, max)), .SDcols = vars]
+    sum_stats_li[[10]] <- gmdt[, list("Full max" = lapply(.SD, max)), .SDcols = vars]
+    sum_stats_li[[11]] <- gmdt_b[, list("Balanced max" = lapply(.SD, max)), .SDcols = vars]
 
     # get variance 
     sum_stats <- do.call(cbind, sum_stats_li)
