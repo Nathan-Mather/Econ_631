@@ -137,40 +137,36 @@
 # ==== Estimate Production Function ==== #
 #========================================#
 
-    # Step 1: Get measurement error
-    # From second-order polynomial (including interactions) of emp, dnpt, drst and investment
-    
+    # Step 1: Get measurement error from second-order polynomial 
+    # (including interactions) of emp, dnpt, drst and investment
     setnames(gmdt, c("ldsal", "ldnpt", "ldrst"), c("lsales","lcap", "lrdcap"))
 
     gmdt[,dummy:=1]
 
+    # I feel like "attaching" is bad right?
     attach(gmdt)    
     X <- cbind(dummy, lemp,lcap,lrdcap,ldinv, lemp*lemp,lemp*lcap, lemp*lrdcap,
     lemp*ldinv,lcap*lcap,lcap*lrdcap,lcap*ldinv,lrdcap*lrdcap,lrdcap*ldinv,ldinv*ldinv)
     
+    # Get the coefficients of all these interactions
     beta1 <- solve(t(X)%*%X)%*%t(X)%*%lsales
 
+    # Get the fitted values
     theta <- X%*%beta1
+
+    # Then detach, see I think this is dumb but idk what the better thing to do would be...
     detach(gmdt)
     
+    # Add the theta to the datatable
     gmdt[,theta:= theta]
-    # lag columns 'v1,v2,v3' DT by 1 and fill with NA
+
+    # get lags of emp, cap, rdcap and theta, remove observations without lag values
     cols = c("lemp","lcap","lrdcap", "theta")
     anscols = paste("lag", cols, sep="_")
     gmdt[, (anscols) := shift(.SD, 1, NA, "lag"), .SDcols=cols]
-    
     gmdt <- gmdt[!is.na(lag_lemp),]
     
-    attach(gmdt)
-
-    X <- as.matrix(cbind(dummy, lemp, lcap, lrdcap))
-    lX <- as.matrix(cbind(dummy, lag_lemp, lag_lcap, lag_lrdcap))
-    Z <- as.matrix(cbind(dummy, lag_lemp, lcap, lrdcap))
-    ltheta <- lag_theta
-    W <- diag(1, 4, 4)
-    
-    detach(gmdt)
-    # function to runn GMM 
+    # function to run GMM 
     # a lot of inputs here but this is how you get around using global objects 
     # THis is supposed to be better practice but it doe sget a bit wild with all these 
     gmm_obj_f <- function(parm_vector.in, Y.in, X.in, lX.in, ltheta.in, Z.in, W.in){
@@ -196,6 +192,16 @@
     
     parm_vector <- c(1, .6, .2, .2, .8)
     
+    # attach again, boo
+    attach(gmdt)
+    
+    # Get X's and lag X's and Zs for GMM estimation
+    X <- as.matrix(cbind(dummy, lemp, lcap, lrdcap))
+    lX <- as.matrix(cbind(dummy, lag_lemp, lag_lcap, lag_lrdcap))
+    Z <- as.matrix(cbind(dummy, lag_lemp, lcap, lrdcap))
+    W <- diag(1, 4, 4)
+    
+    
     # test it out 
     f <- gmm_obj_f(parm_vector.in = parm_vector,
                    Y.in = lsales,
@@ -205,7 +211,7 @@
                    Z.in = Z, 
                    W.in = W)
     
-    
+    # Run the initial GMM using the identity matrix as the weighting matrix
     Results.step1 <-  optim(par         = parm_vector,
                       fn          =  gmm_obj_f,
                       Y.in = lsales,
@@ -216,23 +222,35 @@
                       W.in = W)
     
     
-    # Get the optimal weighting matrix
-    beta <- as.matrix(Results.step1$par[1:4])
-    rho  <- Results.step1$par[5]
-    
-    current.resid <- lsales - X%*%beta
-    
-    lag.w <- as.matrix(lag_theta) - lX%*%beta
-    
-    m <-  current.resid - rho*lag.w
-    
-    m <- as.matrix(m)
-    
-    distance <- t(Z*cbind(m, m, m, m))%*%(Z*cbind(m, m, m, m))
-    W <- distance/length(m)
-    
-    W.inv <- solve(W)
+    # Function to calculate optimal weighting matrix
+    find.optimal.W <- function(results.in, Y.in, X.in, lX.in, ltheta.in, Z.in){
+        beta <- as.matrix(results.in$par[1:4])
+        rho  <- results.in$par[5]
+        
+        current.resid <- Y.in - X.in%*%beta
+        
+        lag.w <- as.matrix(ltheta.in) - lX.in%*%beta
+        
+        m <-  current.resid - rho*lag.w
+        
+        m <- as.matrix(m)
+        
+        distance <- t(Z.in*cbind(m, m, m, m))%*%(Z.in*cbind(m, m, m, m))
+        W <- distance/length(m)
+        
+        W.inv <- solve(W)
+    return(W.inv)
+    }
 
+    # Get optimal weighting matrix
+    W.opt <- find.optimal.W(results.in = Results.step1,
+                            Y.in = lsales,
+                            X.in = X,
+                            lX.in = lX,
+                            ltheta.in = lag_theta,
+                            Z.in = Z)
+
+    # Run again with optimal weighting matrix
     Results.final <-  optim(par         = parm_vector,
                       fn          =  gmm_obj_f,
                       Y.in = lsales,
@@ -240,5 +258,8 @@
                       lX.in = lX,
                       ltheta.in = lag_theta,
                       Z.in = Z, 
-                      W.in = W.inv)
+                      W.in = W.opt)
     
+# To Do:
+# Put lines 140-261 in function, after cleaning up. Run once to get the coefficients, use the boot command to 
+# run a bunch of times to get a bunch of coefficient estimates that we get the SEs from. 
