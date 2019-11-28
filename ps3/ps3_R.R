@@ -13,16 +13,17 @@
   options(scipen = 999)
   cat("\f")
   
+  library(package)
   library(data.table)
   library(xtable)
   
   # set option for who is running this 
-  opt_nate <- TRUE
+  opt_nate <- FALSE
   
   # load data and set directories 
   if(opt_nate){
     
-    # laod data 
+    # load data 
     gmdt <- fread("c:/Users/Nmath_000/Documents/MI_school/Third Year/Econ 631/ps3/GMdata.csv")
     f_out <- "c:/Users/Nmath_000/Documents/Code/Econ_631/ps3/"
   
@@ -30,8 +31,9 @@
     }else{
       
       # load data from tylers locaiton 
-      gmdt <- fread("c:/- tyler path ")
-      f_out <- "tyler puts path here "
+      gmdt <- fread("C:/Users/tyler/Box/coursework/Econ_631/ps3/GMdata.csv")
+      f_out <- "C:/Users/tyler/Box/coursework/Econ_631/ps3"
+
     
   }
 
@@ -131,6 +133,112 @@
           floating = FALSE)
   
   
-  
-  
+#========================================#
+# ==== Estimate Production Function ==== #
+#========================================#
 
+    # Step 1: Get measurement error
+    # From second-order polynomial (including interactions) of emp, dnpt, drst and investment
+    
+    setnames(gmdt, c("ldsal", "ldnpt", "ldrst"), c("lsales","lcap", "lrdcap"))
+
+    gmdt[,dummy:=1]
+
+    attach(gmdt)    
+    X <- cbind(dummy, lemp,lcap,lrdcap,ldinv, lemp*lemp,lemp*lcap, lemp*lrdcap,
+    lemp*ldinv,lcap*lcap,lcap*lrdcap,lcap*ldinv,lrdcap*lrdcap,lrdcap*ldinv,ldinv*ldinv)
+    
+    beta1 <- solve(t(X)%*%X)%*%t(X)%*%lsales
+
+    theta <- X%*%beta1
+    detach(gmdt)
+    
+    gmdt[,theta:= theta]
+    # lag columns 'v1,v2,v3' DT by 1 and fill with NA
+    cols = c("lemp","lcap","lrdcap", "theta")
+    anscols = paste("lag", cols, sep="_")
+    gmdt[, (anscols) := shift(.SD, 1, NA, "lag"), .SDcols=cols]
+    
+    gmdt <- gmdt[!is.na(lag_lemp),]
+    
+    attach(gmdt)
+
+    X <- as.matrix(cbind(dummy, lemp, lcap, lrdcap))
+    lX <- as.matrix(cbind(dummy, lag_lemp, lag_lcap, lag_lrdcap))
+    Z <- as.matrix(cbind(dummy, lag_lemp, lcap, lrdcap))
+    ltheta <- lag_theta
+    W <- diag(1, 4, 4)
+    
+    detach(gmdt)
+    # function to runn GMM 
+    # a lot of inputs here but this is how you get around using global objects 
+    # THis is supposed to be better practice but it doe sget a bit wild with all these 
+    gmm_obj_f <- function(parm_vector.in, Y.in, X.in, lX.in, ltheta.in, Z.in, W.in){
+      
+      beta <- as.matrix(parm_vector.in[1:4])
+      rho <- parm_vector.in[5]
+    
+      current.resid <- Y.in - X.in%*%beta
+      
+      lag.w <- as.matrix(ltheta.in) - lX.in%*%beta
+      
+      m <-  current.resid - rho*lag.w
+      
+      m <- as.matrix(m)
+      
+      distance <- t(Z.in)%*%m
+      
+      result <- t(distance/length(m))%*% W.in %*%(distance/length(m))
+
+      # get function value 
+      return(result)
+    }
+    
+    parm_vector <- c(1, .6, .2, .2, .8)
+    
+    # test it out 
+    f <- gmm_obj_f(parm_vector.in = parm_vector,
+                   Y.in = lsales,
+                   X.in = X,
+                   lX.in = lX,
+                   ltheta.in = lag_theta,
+                   Z.in = Z, 
+                   W.in = W)
+    
+    
+    Results.step1 <-  optim(par         = parm_vector,
+                      fn          =  gmm_obj_f,
+                      Y.in = lsales,
+                      X.in = X,
+                      lX.in = lX,
+                      ltheta.in = lag_theta,
+                      Z.in = Z, 
+                      W.in = W)
+    
+    
+    # Get the optimal weighting matrix
+    beta <- as.matrix(Results.step1$par[1:4])
+    rho  <- Results.step1$par[5]
+    
+    current.resid <- lsales - X%*%beta
+    
+    lag.w <- as.matrix(lag_theta) - lX%*%beta
+    
+    m <-  current.resid - rho*lag.w
+    
+    m <- as.matrix(m)
+    
+    distance <- t(Z*cbind(m, m, m, m))%*%(Z*cbind(m, m, m, m))
+    W <- distance/length(m)
+    
+    W.inv <- solve(W)
+
+    Results.final <-  optim(par         = parm_vector,
+                      fn          =  gmm_obj_f,
+                      Y.in = lsales,
+                      X.in = X,
+                      lX.in = lX,
+                      ltheta.in = lag_theta,
+                      Z.in = Z, 
+                      W.in = W.inv)
+    
