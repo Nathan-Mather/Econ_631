@@ -143,21 +143,18 @@
 
     gmdt[,dummy:=1]
 
-    # I feel like "attaching" is bad right?
-    attach(gmdt)    
-    X <- cbind(dummy, lemp,lcap,lrdcap,ldinv, lemp*lemp,lemp*lcap, lemp*lrdcap,
-    lemp*ldinv,lcap*lcap,lcap*lrdcap,lcap*ldinv,lrdcap*lrdcap,lrdcap*ldinv,ldinv*ldinv)
+    X <- as.matrix(gmdt[,.(dummy, lemp,lcap,lrdcap,ldinv, lemp*lemp,lemp*lcap, lemp*lrdcap,
+    lemp*ldinv,lcap*lcap,lcap*lrdcap,lcap*ldinv,lrdcap*lrdcap,lrdcap*ldinv,ldinv*ldinv)])
     
+    Y <- as.matrix(gmdt[,.(lsales)])
+
     # Get the coefficients of all these interactions
-    beta1 <- solve(t(X)%*%X)%*%t(X)%*%lsales
+    beta1 <- solve(t(X)%*%X)%*%t(X)%*%Y
 
     # Get the fitted values
     theta <- X%*%beta1
 
-    # Then detach, see I think this is dumb but idk what the better thing to do would be...
-    detach(gmdt)
-    
-    # Add the theta to the datatable
+    # Add the fitted values to the datatable
     gmdt[,theta:= theta]
 
     # get lags of emp, cap, rdcap and theta, remove observations without lag values
@@ -192,32 +189,30 @@
     
     parm_vector <- c(1, .6, .2, .2, .8)
     
-    # attach again, boo
-    attach(gmdt)
-    
     # Get X's and lag X's and Zs for GMM estimation
-    X <- as.matrix(cbind(dummy, lemp, lcap, lrdcap))
-    lX <- as.matrix(cbind(dummy, lag_lemp, lag_lcap, lag_lrdcap))
-    Z <- as.matrix(cbind(dummy, lag_lemp, lcap, lrdcap))
+    X <- as.matrix(gmdt[,.(dummy, lemp, lcap, lrdcap)])
+    lX <- as.matrix(gmdt[,.(dummy, lag_lemp, lag_lcap, lag_lrdcap)])
+    Z <- as.matrix(gmdt[,.(dummy, lag_lemp, lcap, lrdcap)])
+    Y <- as.matrix(gmdt[,.(lsales)])
+    ltheta <- as.matrix(gmdt[,.(lag_theta)])
     W <- diag(1, 4, 4)
-    
     
     # test it out 
     f <- gmm_obj_f(parm_vector.in = parm_vector,
-                   Y.in = lsales,
+                   Y.in = Y,
                    X.in = X,
                    lX.in = lX,
-                   ltheta.in = lag_theta,
+                   ltheta.in = ltheta,
                    Z.in = Z, 
                    W.in = W)
     
     # Run the initial GMM using the identity matrix as the weighting matrix
     Results.step1 <-  optim(par         = parm_vector,
                       fn          =  gmm_obj_f,
-                      Y.in = lsales,
+                      Y.in = Y,
                       X.in = X,
                       lX.in = lX,
-                      ltheta.in = lag_theta,
+                      ltheta.in = ltheta,
                       Z.in = Z, 
                       W.in = W)
     
@@ -244,19 +239,19 @@
 
     # Get optimal weighting matrix
     W.opt <- find.optimal.W(results.in = Results.step1,
-                            Y.in = lsales,
+                            Y.in = Y,
                             X.in = X,
                             lX.in = lX,
-                            ltheta.in = lag_theta,
+                            ltheta.in = ltheta,
                             Z.in = Z)
-
+    
     # Run again with optimal weighting matrix
     Results.final <-  optim(par         = parm_vector,
                       fn          =  gmm_obj_f,
-                      Y.in = lsales,
+                      Y.in = Y,
                       X.in = X,
                       lX.in = lX,
-                      ltheta.in = lag_theta,
+                      ltheta.in = ltheta,
                       Z.in = Z, 
                       W.in = W.opt)
     
