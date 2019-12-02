@@ -142,26 +142,46 @@
     setnames(gmdt, c("ldsal", "ldnpt", "ldrst"), c("lsales","lcap", "lrdcap"))
 
     gmdt[,dummy:=1]
-
-    X <- as.matrix(gmdt[,.(dummy, lemp,lcap,lrdcap,ldinv, lemp*lemp,lemp*lcap, lemp*lrdcap,
-                            lemp*ldinv,lcap*lcap,lcap*lrdcap,lcap*ldinv,lrdcap*lrdcap,lrdcap*ldinv,ldinv*ldinv)])
     
-    Y <- as.matrix(gmdt[,.(lsales)])
+  
+  #=============================#
+  # ==== internal functions ====
+  #=============================#
 
-    # Get the coefficients of all these interactions
-    beta1 <- solve(t(X)%*%X)%*%t(X)%*%Y
 
-    # Get the fitted values
-    theta <- X%*%beta1
-
-    # Add the fitted values to the datatable
-    gmdt[,theta:= theta]
-
-    # get lags of emp, cap, rdcap and theta, remove observations without lag values
-    cols = c("lemp","lcap","lrdcap", "theta")
-    anscols = paste("lag", cols, sep="_")
-    gmdt[, (anscols) := shift(.SD, 1, NA, "lag"), .SDcols=cols]
-    gmdt <- gmdt[!is.na(lag_lemp),]
+    in_data <- gmdt
+    get_resid_fun <- function(in_data){
+      
+      dt_copy <- copy(in_data)
+    
+      X <- as.matrix(dt_copy[,.(dummy, lemp,lcap,lrdcap,ldinv, lemp*lemp,lemp*lcap, lemp*lrdcap,
+                              lemp*ldinv,lcap*lcap,lcap*lrdcap,lcap*ldinv,lrdcap*lrdcap,lrdcap*ldinv,ldinv*ldinv)])
+      
+      Y <- as.matrix(dt_copy[,.(lsales)])
+  
+      # Get the coefficients of all these interactions
+      beta1 <- solve(t(X)%*%X)%*%t(X)%*%Y
+  
+      # Get the fitted values
+      theta <- X%*%beta1
+  
+      # Add the fitted values to the datatable
+      dt_copy[,theta:= theta]
+  
+      # get lags of emp, cap, rdcap and theta, remove observations without lag values
+      cols = c("lemp","lcap","lrdcap", "theta")
+      anscols = paste("lag", cols, sep="_")
+      dt_copy[, (anscols) := shift(.SD, 1, NA, "lag"), .SDcols=cols]
+      dt_copy <- dt_copy[!is.na(lag_lemp),]
+      
+      return(dt_copy)
+    
+    }
+    
+    # ttest the funciton 
+    gmdt2 <- get_resid_fun(gmdt)
+    
+    
     
     # function to run GMM 
     # a lot of inputs here but this is how you get around using global objects 
@@ -196,11 +216,11 @@
     parm_vector <- c(1, .6, .2, .2, .8)
     
     # Get X's and lag X's and Zs for GMM estimation
-    X <- as.matrix(gmdt[,.(dummy, lemp, lcap, lrdcap)])
-    lX <- as.matrix(gmdt[,.(dummy, lag_lemp, lag_lcap, lag_lrdcap)])
-    Z <- as.matrix(gmdt[,.(dummy, lag_lemp, lcap, lrdcap)])
-    Y <- as.matrix(gmdt[,.(lsales)])
-    ltheta <- as.matrix(gmdt[,.(lag_theta)])
+    X <- as.matrix(gmdt2[,.(dummy, lemp, lcap, lrdcap)])
+    lX <- as.matrix(gmdt2[,.(dummy, lag_lemp, lag_lcap, lag_lrdcap)])
+    Z <- as.matrix(gmdt2[,.(dummy, lag_lemp, lcap, lrdcap)])
+    Y <- as.matrix(gmdt2[,.(lsales)])
+    ltheta <- as.matrix(gmdt2[,.(lag_theta)])
     W <- diag(1, 4, 4)
     
     # test it out 
@@ -263,6 +283,71 @@
                       ltheta.in = ltheta,
                       Z.in = Z, 
                       W.in = W.opt)
+  
+    
+  #========================#
+  # ==== boot function ====
+  #========================#
+
+    in_data <- gmdt
+    to_boot_fun <- function(in_data){
+      
+      # get resids 
+      boot_dt <- get_resid_fun(in_data)
+      
+      parm_vector <- c(1, .6, .2, .2, .8)
+      
+      # Get X's and lag X's and Zs for GMM estimation
+      X <- as.matrix(boot_dt[,.(dummy, lemp, lcap, lrdcap)])
+      lX <- as.matrix(boot_dt[,.(dummy, lag_lemp, lag_lcap, lag_lrdcap)])
+      Z <- as.matrix(boot_dt[,.(dummy, lag_lemp, lcap, lrdcap)])
+      Y <- as.matrix(boot_dt[,.(lsales)])
+      ltheta <- as.matrix(boot_dt[,.(lag_theta)])
+      W <- diag(1, 4, 4)
+      
+      
+      # test it out 
+      f <- gmm_obj_f(parm_vector.in = parm_vector,
+                     Y.in           = Y,
+                     X.in           = X,
+                     lX.in          = lX,
+                     ltheta.in      = ltheta,
+                     Z.in           = Z, 
+                     W.in           = W)
+      # Run the initial GMM using the identity matrix as the weighting matrix
+      Results.step1 <-  optim(par         = parm_vector,
+                              fn          =  gmm_obj_f,
+                              Y.in        = Y,
+                              X.in        = X,
+                              lX.in       = lX,
+                              ltheta.in   = ltheta,
+                              Z.in        = Z, 
+                              W.in        = W)
+      # Get optimal weighting matrix
+      W.opt <- find.optimal.W(results.in = Results.step1,
+                              Y.in = Y,
+                              X.in = X,
+                              lX.in = lX,
+                              ltheta.in = ltheta,
+                              Z.in = Z)
+      
+      # Run again with optimal weighting matrix
+      Results.final <-  optim(par         = parm_vector,
+                              fn          =  gmm_obj_f,
+                              Y.in = Y,
+                              X.in = X,
+                              lX.in = lX,
+                              ltheta.in = ltheta,
+                              Z.in = Z, 
+                              W.in = W.opt)
+      
+      return(Results.final$par)
+      
+    }
+    
+    
+    boot_res <- boot(gmdt, to_boot_fun, )
+    
     
 # To Do:
 # Put lines 140-261 in function, after cleaning up. Run once to get the coefficients, use the boot command to 
