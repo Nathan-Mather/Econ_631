@@ -18,7 +18,7 @@
   library(xtable)
   
   # set option for who is running this 
-  opt_nate <- FALSE
+  opt_nate <- TRUE
   
   # load data and set directories 
   if(opt_nate){
@@ -144,7 +144,7 @@
     gmdt[,dummy:=1]
 
     X <- as.matrix(gmdt[,.(dummy, lemp,lcap,lrdcap,ldinv, lemp*lemp,lemp*lcap, lemp*lrdcap,
-    lemp*ldinv,lcap*lcap,lcap*lrdcap,lcap*ldinv,lrdcap*lrdcap,lrdcap*ldinv,ldinv*ldinv)])
+                            lemp*ldinv,lcap*lcap,lcap*lrdcap,lcap*ldinv,lrdcap*lrdcap,lrdcap*ldinv,ldinv*ldinv)])
     
     Y <- as.matrix(gmdt[,.(lsales)])
 
@@ -166,7 +166,13 @@
     # function to run GMM 
     # a lot of inputs here but this is how you get around using global objects 
     # THis is supposed to be better practice but it doe sget a bit wild with all these 
-    gmm_obj_f <- function(parm_vector.in, Y.in, X.in, lX.in, ltheta.in, Z.in, W.in){
+    gmm_obj_f <- function(parm_vector.in,
+                          Y.in = Y, 
+                          X.in = X, 
+                          lX.in = lX, 
+                          ltheta.in = ltheta,
+                          Z.in = Z,
+                          W.in = W){
       
       beta <- as.matrix(parm_vector.in[1:4])
       rho <- parm_vector.in[5]
@@ -199,26 +205,29 @@
     
     # test it out 
     f <- gmm_obj_f(parm_vector.in = parm_vector,
-                   Y.in = Y,
-                   X.in = X,
-                   lX.in = lX,
-                   ltheta.in = ltheta,
-                   Z.in = Z, 
-                   W.in = W)
-    
+                   Y.in           = Y,
+                   X.in           = X,
+                   lX.in          = lX,
+                   ltheta.in      = ltheta,
+                   Z.in           = Z, 
+                   W.in           = W)
     # Run the initial GMM using the identity matrix as the weighting matrix
     Results.step1 <-  optim(par         = parm_vector,
-                      fn          =  gmm_obj_f,
-                      Y.in = Y,
-                      X.in = X,
-                      lX.in = lX,
-                      ltheta.in = ltheta,
-                      Z.in = Z, 
-                      W.in = W)
-    
+                            fn          =  gmm_obj_f,
+                            Y.in        = Y,
+                            X.in        = X,
+                            lX.in       = lX,
+                            ltheta.in   = ltheta,
+                            Z.in        = Z, 
+                            W.in        = W)
     
     # Function to calculate optimal weighting matrix
-    find.optimal.W <- function(results.in, Y.in, X.in, lX.in, ltheta.in, Z.in){
+    find.optimal.W <- function(results.in,
+                               Y.in = Y,
+                               X.in =X,
+                               lX.in = lX, 
+                               ltheta.in = ltheta,
+                               Z.in = Z){
         beta <- as.matrix(results.in$par[1:4])
         rho  <- results.in$par[5]
         
