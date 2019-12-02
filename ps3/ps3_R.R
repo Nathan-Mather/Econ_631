@@ -89,8 +89,8 @@
     
     
     # varianvce 
-    sum_stats_li[[5]] <- gmdt[, list("Full Variance" = lapply(.SD, var)), .SDcols = vars]
-    sum_stats_li[[6]] <- gmdt_b[, list("Bal. Variance" = lapply(.SD, var)), .SDcols = vars]
+    sum_stats_li[[5]] <- gmdt[, list("Full VAR" = lapply(.SD, var)), .SDcols = vars]
+    sum_stats_li[[6]] <- gmdt_b[, list("Bal. VAR" = lapply(.SD, var)), .SDcols = vars]
     
     
     # fstat for equalit of variance 
