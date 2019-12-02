@@ -1,0 +1,18 @@
+---
+title: "pset 3 631"
+output: pdf_document
+theme: journal
+self_contained: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r, code = readLines("c:/users/Nmath_000/Documents/Code/Econ_631/ps3/ps3_R.R"), eval=FALSE}
+
+
+```
+  

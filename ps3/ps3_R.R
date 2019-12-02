@@ -16,6 +16,7 @@
   library(package)
   library(data.table)
   library(xtable)
+  library(boot)
   
   # set option for who is running this 
   opt_nate <- TRUE
@@ -390,8 +391,37 @@
          include.rownames = FALSE,
          floating = FALSE)
    
+   #=============================#
+   # ==== write out own boot ====
+   #=============================#
+
+     n_sim <- 1000
+     re_list <- vector("list", length = n_sim)
+     for(i in 1:n_sim){
+       
+       # grab a random sample 
+       sample_i <- sample(1:1400, 1400, replace = TRUE)
+       dt_i <- gmdt_b[index %in% sample_i]
+       
+       # run function on subsample 
+       res_i <- to_boot_fun(dt_i, 1:nrow(dt_i))
+       
+       re_list[[i]] <- data.table(var = parms , res = res_i)
+     }
+     re_list
+     
+     re_dt <- rbindlist(re_list)
    
-    
-# To Do:
-# Put lines 140-261 in function, after cleaning up. Run once to get the coefficients, use the boot command to 
-# run a bunch of times to get a bunch of coefficient estimates that we get the SEs from. 
+     # now do thing 
+     re_dt[, mean := mean(res), var]
+     re_dt[, to_sum := (res-mean)^2 ]
+     re_dt[, sqrt(1/(n_sim - 1) * sum(to_sum)), var]
+
+   #======================================#
+   # ==== run r markdown for tex file ====
+   #======================================#
+   
+   rmarkdown::render(input =  "C:/Users/Nmath_000/Documents/Code/Econ_631/ps3/ps3_r_markdown.Rmd",
+                     output_format = "pdf_document",
+                     output_file = paste0(f_out, "assignment_3_r_code_pdf.pdf"))   
+   
