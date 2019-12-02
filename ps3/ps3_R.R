@@ -74,7 +74,7 @@
     sum_stats_li[[1]] <- data.table(Variable = vars)
     # means 
     sum_stats_li[[2]] <- gmdt[, list("Full Mean" = lapply(.SD, mean)), .SDcols = vars]
-    sum_stats_li[[3]] <- gmdt_b[, list("Balanced Mean" = lapply(.SD, mean)), .SDcols = vars]
+    sum_stats_li[[3]] <- gmdt_b[, list("Bal. Mean" = lapply(.SD, mean)), .SDcols = vars]
     
     # t.test for mean equlity 
     # function to do it 
@@ -90,7 +90,7 @@
     
     # varianvce 
     sum_stats_li[[5]] <- gmdt[, list("Full Variance" = lapply(.SD, var)), .SDcols = vars]
-    sum_stats_li[[6]] <- gmdt_b[, list("Balanced Variance" = lapply(.SD, var)), .SDcols = vars]
+    sum_stats_li[[6]] <- gmdt_b[, list("Bal. Variance" = lapply(.SD, var)), .SDcols = vars]
     
     
     # fstat for equalit of variance 
@@ -107,10 +107,10 @@
     
     #min
     sum_stats_li[[8]] <- gmdt[, list("Full Min" = lapply(.SD, min)), .SDcols = vars]
-    sum_stats_li[[9]] <- gmdt_b[, list("Balanced Min" = lapply(.SD, min)), .SDcols = vars]
+    sum_stats_li[[9]] <- gmdt_b[, list("Bal. Min" = lapply(.SD, min)), .SDcols = vars]
     #max 
     sum_stats_li[[10]] <- gmdt[, list("Full max" = lapply(.SD, max)), .SDcols = vars]
-    sum_stats_li[[11]] <- gmdt_b[, list("Balanced max" = lapply(.SD, max)), .SDcols = vars]
+    sum_stats_li[[11]] <- gmdt_b[, list("Bal. max" = lapply(.SD, max)), .SDcols = vars]
 
     # get variance 
     sum_stats <- do.call(cbind, sum_stats_li)
@@ -142,6 +142,11 @@
     setnames(gmdt, c("ldsal", "ldnpt", "ldrst"), c("lsales","lcap", "lrdcap"))
 
     gmdt[,dummy:=1]
+    
+    # do it for balanced too just for fun 
+    setnames(gmdt_b, c("ldsal", "ldnpt", "ldrst"), c("lsales","lcap", "lrdcap"))
+    
+    gmdt_b[,dummy:=1]
     
   
   #=============================#
@@ -290,10 +295,13 @@
   #========================#
 
     in_data <- gmdt
-    to_boot_fun <- function(in_data){
+    sample <- 1:nrow(in_data)
+    to_boot_fun <- function(in_data, sample){
+      
+      boot_dt <- in_data[sample]
       
       # get resids 
-      boot_dt <- get_resid_fun(in_data)
+      boot_dt <- get_resid_fun(boot_dt)
       
       parm_vector <- c(1, .6, .2, .2, .8)
       
@@ -346,8 +354,34 @@
     }
     
     
-    boot_res <- boot(gmdt, to_boot_fun, )
+    to_boot_fun(gmdt, 1:(nrow(gmdt)))
     
+    
+    # set seed and run boot 
+    set.seed(1234)
+    boot_res <- boot(data = gmdt, statistic = to_boot_fun, R = 1000, strata = gmdt$index)
+    # boot_res <- boot(data = gmdt_b, statistic = to_boot_fun, R = 1000, strata = gmdt_b$index)
+    # boot_res2 <- boot(data = gmdt_b, statistic = to_boot_fun, R = 1000)
+    # boot_res3 <- boot(data = gmdt, statistic = to_boot_fun, R = 1000)
+    # 
+
+  # put it in a table 
+   boot_dt <-  data.table(broom::tidy(boot_res))
+   
+  # add parameter names 
+   parms <- c("B_0", "L", "K", "RD", "P")
+   boot_dt[, parm := parms]
+   setcolorder(boot_dt, "parm")
+   
+   
+   
+   # save table 
+   print(xtable(boot_dt, type = "latex"), 
+         file = paste0(f_out, "boot_res.tex"),
+         include.rownames = FALSE,
+         floating = FALSE)
+   
+   
     
 # To Do:
 # Put lines 140-261 in function, after cleaning up. Run once to get the coefficients, use the boot command to 
