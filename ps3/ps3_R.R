@@ -125,10 +125,19 @@
   #============================#
 
   
+    # split this into two tables 
+    sum_stat_1 <- sum_stats[, 1:7, with=FALSE]
+    sum_stat_2 <- sum_stats[, c(1, 8:11), with = FALSE]
+    
   
     # save summary stats 
-    print(xtable(sum_stats, type = "latex"), 
-          file = paste0(f_out, "sum_stats.tex"),
+    print(xtable(sum_stat_1, type = "latex"), 
+          file = paste0(f_out, "sum_stats_1.tex"),
+          include.rownames = FALSE,
+          floating = FALSE)
+    
+    print(xtable(sum_stat_2, type = "latex"), 
+          file = paste0(f_out, "sum_stats_2.tex"),
           include.rownames = FALSE,
           floating = FALSE)
   
