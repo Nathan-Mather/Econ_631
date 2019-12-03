@@ -17,9 +17,11 @@
   library(data.table)
   library(xtable)
   library(boot)
+  library(broom)
+  library(rmarkdown)
   
   # set option for who is running this 
-  opt_nate <- TRUE
+  opt_nate <- FALSE
   
   # load data and set directories 
   if(opt_nate){
@@ -369,7 +371,7 @@
     
     # set seed and run boot 
     set.seed(1234)
-    boot_res <- boot(data = gmdt, statistic = to_boot_fun, R = 1000, strata = gmdt$index)
+    boot_res <- boot(data = gmdt_b, statistic = to_boot_fun, R = 1000, strata = gmdt$index)
     # boot_res <- boot(data = gmdt_b, statistic = to_boot_fun, R = 1000, strata = gmdt_b$index)
     # boot_res2 <- boot(data = gmdt_b, statistic = to_boot_fun, R = 1000)
     # boot_res3 <- boot(data = gmdt, statistic = to_boot_fun, R = 1000)
@@ -421,7 +423,22 @@
    # ==== run r markdown for tex file ====
    #======================================#
    
-   rmarkdown::render(input =  "C:/Users/Nmath_000/Documents/Code/Econ_631/ps3/ps3_r_markdown.Rmd",
-                     output_format = "pdf_document",
-                     output_file = paste0(f_out, "assignment_3_r_code_pdf.pdf"))   
    
+     
+     
+     
+  # load data and set directories 
+     if(opt_nate){
+       
+       rmarkdown::render(input =  "C:/Users/Nmath_000/Documents/Code/Econ_631/ps3/ps3_r_markdown.Rmd",
+                         output_format = "pdf_document",
+                         output_file = paste0(f_out, "assignment_3_r_code_pdf.pdf"))   
+  
+        # if running on tyler's computer 
+     }else{
+       
+       rmarkdown::render(input =  "C:/Users/tyler/Box/coursework/Econ_631/ps3/ps3_r_markdown.Rmd",
+                         output_format = "pdf_document",
+                         output_file = paste0(f_out, "assignment_3_r_code_pdf.pdf"))   
+       
+     }
