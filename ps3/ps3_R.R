@@ -21,7 +21,7 @@
   library(rmarkdown)
   
   # set option for who is running this 
-  opt_nate <- FALSE
+  opt_nate <- TRUE
   
   # load data and set directories 
   if(opt_nate){
@@ -166,7 +166,7 @@
   #=============================#
 
 
-    in_data <- gmdt
+    # in_data <- gmdt_b
     get_resid_fun <- function(in_data){
       
       dt_copy <- copy(in_data)
@@ -188,16 +188,17 @@
       # get lags of emp, cap, rdcap and theta, remove observations without lag values
       cols = c("lemp","lcap","lrdcap", "theta")
       anscols = paste("lag", cols, sep="_")
-      dt_copy[, (anscols) := shift(.SD, 1, NA, "lag"), .SDcols=cols]
+      dt_copy[, (anscols) := shift(.SD, 1, NA, "lag"), .SDcols=cols, index]
+
       dt_copy <- dt_copy[!is.na(lag_lemp),]
       
       return(dt_copy)
     
     }
     
-    # ttest the funciton 
-    gmdt2 <- get_resid_fun(gmdt)
-    
+    # # ttest the funciton
+    # gmdt2 <- get_resid_fun(gmdt)
+    # 
     
     
     # function to run GMM 
@@ -230,33 +231,35 @@
       return(result)
     }
     
-    parm_vector <- c(1, .6, .2, .2, .8)
-    
-    # Get X's and lag X's and Zs for GMM estimation
-    X <- as.matrix(gmdt2[,.(dummy, lemp, lcap, lrdcap)])
-    lX <- as.matrix(gmdt2[,.(dummy, lag_lemp, lag_lcap, lag_lrdcap)])
-    Z <- as.matrix(gmdt2[,.(dummy, lag_lemp, lcap, lrdcap)])
-    Y <- as.matrix(gmdt2[,.(lsales)])
-    ltheta <- as.matrix(gmdt2[,.(lag_theta)])
-    W <- diag(1, 4, 4)
-    
-    # test it out 
-    f <- gmm_obj_f(parm_vector.in = parm_vector,
-                   Y.in           = Y,
-                   X.in           = X,
-                   lX.in          = lX,
-                   ltheta.in      = ltheta,
-                   Z.in           = Z, 
-                   W.in           = W)
-    # Run the initial GMM using the identity matrix as the weighting matrix
-    Results.step1 <-  optim(par         = parm_vector,
-                            fn          =  gmm_obj_f,
-                            Y.in        = Y,
-                            X.in        = X,
-                            lX.in       = lX,
-                            ltheta.in   = ltheta,
-                            Z.in        = Z, 
-                            W.in        = W)
+    # TEST
+    # # parms to test the function 
+    # parm_vector <- c(1, .6, .2, .2, .8)
+    # 
+    # # Get X's and lag X's and Zs for GMM estimation
+    # X <- as.matrix(gmdt2[,.(dummy, lemp, lcap, lrdcap)])
+    # lX <- as.matrix(gmdt2[,.(dummy, lag_lemp, lag_lcap, lag_lrdcap)])
+    # Z <- as.matrix(gmdt2[,.(dummy, lag_lemp, lcap, lrdcap)])
+    # Y <- as.matrix(gmdt2[,.(lsales)])
+    # ltheta <- as.matrix(gmdt2[,.(lag_theta)])
+    # W <- diag(1, 4, 4)
+    # 
+    # # test it out 
+    # f <- gmm_obj_f(parm_vector.in = parm_vector,
+    #                Y.in           = Y,
+    #                X.in           = X,
+    #                lX.in          = lX,
+    #                ltheta.in      = ltheta,
+    #                Z.in           = Z, 
+    #                W.in           = W)
+    # # Run the initial GMM using the identity matrix as the weighting matrix
+    # Results.step1 <-  optim(par         = parm_vector,
+    #                         fn          =  gmm_obj_f,
+    #                         Y.in        = Y,
+    #                         X.in        = X,
+    #                         lX.in       = lX,
+    #                         ltheta.in   = ltheta,
+    #                         Z.in        = Z, 
+    #                         W.in        = W)
     
     # Function to calculate optimal weighting matrix
     find.optimal.W <- function(results.in,
@@ -283,31 +286,32 @@
     return(W.inv)
     }
 
-    # Get optimal weighting matrix
-    W.opt <- find.optimal.W(results.in = Results.step1,
-                            Y.in = Y,
-                            X.in = X,
-                            lX.in = lX,
-                            ltheta.in = ltheta,
-                            Z.in = Z)
-    
-    # Run again with optimal weighting matrix
-    Results.final <-  optim(par         = parm_vector,
-                      fn          =  gmm_obj_f,
-                      Y.in = Y,
-                      X.in = X,
-                      lX.in = lX,
-                      ltheta.in = ltheta,
-                      Z.in = Z, 
-                      W.in = W.opt)
+    # test
+    # # Get optimal weighting matrix
+    # W.opt <- find.optimal.W(results.in = Results.step1,
+    #                         Y.in = Y,
+    #                         X.in = X,
+    #                         lX.in = lX,
+    #                         ltheta.in = ltheta,
+    #                         Z.in = Z)
+    # 
+    # # Run again with optimal weighting matrix
+    # Results.final <-  optim(par         = parm_vector,
+    #                   fn          =  gmm_obj_f,
+    #                   Y.in = Y,
+    #                   X.in = X,
+    #                   lX.in = lX,
+    #                   ltheta.in = ltheta,
+    #                   Z.in = Z, 
+    #                   W.in = W.opt)
   
     
   #========================#
   # ==== boot function ====
   #========================#
 
-    in_data <- gmdt
-    sample <- 1:nrow(in_data)
+    # in_data <- gmdt
+    # sample <- 1:nrow(in_data)
     to_boot_fun <- function(in_data, sample){
       
       boot_dt <- in_data[sample]
@@ -366,66 +370,94 @@
     }
     
     
-    to_boot_fun(gmdt, 1:(nrow(gmdt)))
+    # to_boot_fun(gmdt, 1:(nrow(gmdt)))
     
     
-    # set seed and run boot 
-    set.seed(1234)
-    boot_res <- boot(data = gmdt_b, statistic = to_boot_fun, R = 1000, strata = gmdt$index)
-    # boot_res <- boot(data = gmdt_b, statistic = to_boot_fun, R = 1000, strata = gmdt_b$index)
-    # boot_res2 <- boot(data = gmdt_b, statistic = to_boot_fun, R = 1000)
-    # boot_res3 <- boot(data = gmdt, statistic = to_boot_fun, R = 1000)
-    # 
+    
+  #===========================#
+  # ==== Do bootstrapping ====
+  #===========================#
+    
+    
+    #=============================#
+    # ==== write out own boot ====
+    #=============================#
+    
+      n_sim <- 1000
 
-  # put it in a table 
-   boot_dt <-  data.table(broom::tidy(boot_res))
+      # block boot funciton to iteratie 
+      block_boot <- function(iteration, in_data){
+        
+        # if iteration is 1 use full sample 
+        if(iteration == 1){
+          
+          sample_i <- 1:1400
+        }else{
+          sample_i <- sample(1:1400, 1400, replace = TRUE)
+          
+        }
+        
+        # grab a random sample
+        dt_i <- in_data[index %in% sample_i]
+        
+        # run function on subsample
+        res_i <- to_boot_fun(dt_i, 1:nrow(dt_i))
+        
+        return(data.table(var = parms , res = res_i))
+      }
+      
+      # apply function n_sim times 
+      re_list_b <- lapply(1:n_sim, block_boot, in_data = gmdt_b)
+     
+      # do it again on unbalanced sample 
+      re_list_u <- lapply(1:n_sim, block_boot, in_data = gmdt)
+      
+     
+      # bind the lists together 
+      re_dt_b <- rbindlist(re_list_b)
+      re_dt_u <- rbindlist(re_list_u)
+      
+      
+      # Now get standard errors for balanced 
+      re_dt_b[, mean := mean(res), var]
+      re_dt_b[, to_sum := (res-mean)^2 ]
+      out_dt_b <- re_dt_b[, list(std.error =  sqrt(1/(n_sim - 1) * sum(to_sum))), var]
+      
+      # Now get standard errors fo unbalanced 
+      re_dt_u[, mean := mean(res), var]
+      re_dt_u[, to_sum := (res-mean)^2 ]
+      out_dt_u <- re_dt_u[, list(std.error =  sqrt(1/(n_sim - 1) * sum(to_sum))), var]
+      
+      # Now add in estiamtes 
+      est_b <- re_list_b[[1]]
+      est_u <- re_list_u[[1]]
+      out_dt_b <- merge(est_b, out_dt_b, "var")
+      out_dt_u <- merge(est_u, out_dt_u, "var")
+    
    
-  # add parameter names 
-   parms <- c("B_0", "L", "K", "RD", "P")
-   boot_dt[, parm := parms]
-   setcolorder(boot_dt, "parm")
-   
-   
+      # change the variable names 
+      setnames(out_dt_b, colnames(out_dt_b), c("Parm", "Statistic", "Std.Error"))
+      setnames(out_dt_u, colnames(out_dt_u), c("Parm", "Statistic", "Std.Error"))
    
    # save table 
-   print(xtable(boot_dt, type = "latex"), 
+   print(xtable(out_dt_b, type = "latex"), 
          file = paste0(f_out, "boot_res.tex"),
          include.rownames = FALSE,
          floating = FALSE)
    
-   #=============================#
-   # ==== write out own boot ====
-   #=============================#
-
-     n_sim <- 1000
-     re_list <- vector("list", length = n_sim)
-     for(i in 1:n_sim){
-       
-       # grab a random sample 
-       sample_i <- sample(1:1400, 1400, replace = TRUE)
-       dt_i <- gmdt_b[index %in% sample_i]
-       
-       # run function on subsample 
-       res_i <- to_boot_fun(dt_i, 1:nrow(dt_i))
-       
-       re_list[[i]] <- data.table(var = parms , res = res_i)
-     }
-     re_list
-     
-     re_dt <- rbindlist(re_list)
+   print(xtable(out_dt_u, type = "latex"), 
+         file = paste0(f_out, "boot_res_unbalanced.tex"),
+         include.rownames = FALSE,
+         floating = FALSE)
    
-     # now do thing 
-     re_dt[, mean := mean(res), var]
-     re_dt[, to_sum := (res-mean)^2 ]
-     re_dt[, sqrt(1/(n_sim - 1) * sum(to_sum)), var]
+   
+
 
    #======================================#
    # ==== run r markdown for tex file ====
    #======================================#
    
    
-     
-     
      
   # load data and set directories 
      if(opt_nate){
